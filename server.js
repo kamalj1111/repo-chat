@@ -5,34 +5,34 @@ const { execSync } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DIST = path.join(__dirname, 'frontend', 'dist');
+const ROOT = __dirname;
+const DIST = path.join(ROOT, 'frontend', 'dist');
+const INDEX = path.join(DIST, 'index.html');
 
-// Build the frontend if dist doesn't exist
-if (!fs.existsSync(DIST)) {
-  console.log('[server] frontend/dist not found — building now...');
+function runCmd(cmd) {
+  console.log(`[build] $ ${cmd}`);
+  execSync(cmd, { stdio: 'inherit', cwd: ROOT });
+}
+
+if (!fs.existsSync(INDEX)) {
+  console.log('[build] frontend/dist/index.html not found — building...');
   try {
-    execSync('npm install --prefix frontend', { stdio: 'inherit', cwd: __dirname });
-    execSync('npm run build --prefix frontend', { stdio: 'inherit', cwd: __dirname });
-    console.log('[server] Build complete.');
+    // CORRECT npm --prefix syntax: flag goes BEFORE the subcommand
+    runCmd('npm --prefix frontend install');
+    runCmd('npm --prefix frontend run build');
   } catch (err) {
-    console.error('[server] Build failed:', err.message);
+    console.error('[build] FAILED:', err.message);
+    process.exit(1);
+  }
+  if (!fs.existsSync(INDEX)) {
+    console.error('[build] index.html still missing after build — aborting.');
     process.exit(1);
   }
 }
 
-if (!fs.existsSync(path.join(DIST, 'index.html'))) {
-  console.error(`[server] ERROR: ${DIST}/index.html still missing after build. Exiting.`);
-  process.exit(1);
-}
-
-console.log(`[server] Serving from: ${DIST}`);
-
+console.log('[server] Serving:', DIST);
 app.use(express.static(DIST));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(DIST, 'index.html'));
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[server] Running on http://0.0.0.0:${PORT}`);
-});
+app.get('*', (_req, res) => res.sendFile(INDEX));
+app.listen(PORT, '0.0.0.0', () =>
+  console.log(`[server] http://0.0.0.0:${PORT}`)
+);
