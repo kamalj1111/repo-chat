@@ -16,7 +16,7 @@ async function safeFetch(url, options) {
     return await res.json();
   } catch (err) {
     if (err.name === "TypeError" && (err.message.includes("fetch") || err.message.includes("Failed") || err.message.includes("NetworkError"))) {
-      throw new Error("Unable to connect to the backend server. Please ensure your FastAPI backend is running on http://127.0.0.1:8000.");
+      throw new Error("Unable to connect to the backend server. Please check your backend connection or VITE_API_URL setting.");
     }
     throw err;
   }

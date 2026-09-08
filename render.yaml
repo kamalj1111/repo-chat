@@ -1,0 +1,46 @@
+services:
+  # FastAPI Backend Web Service
+  - type: web
+    name: repo-chat-backend
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: MAX_FILES_PER_REPO
+        value: "500"
+      - key: CLONE_ROOT
+        value: "/tmp/repo-chat-clones"
+      - key: FRONTEND_ORIGIN
+        value: "https://repo-chat-frontend.onrender.com"
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NVIDIA_MODEL
+        value: "meta/llama-3.2-11b-vision-instruct"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_API_KEY
+        sync: false
+
+  # React Frontend Static Site
+  - type: web
+    name: repo-chat-frontend
+    env: static
+    region: singapore
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: repo-chat-backend
+          property: url
