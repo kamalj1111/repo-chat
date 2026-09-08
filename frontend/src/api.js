@@ -1,0 +1,48 @@
+const API_BASE = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : "http://127.0.0.1:8000";
+
+async function safeFetch(url, options) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      let detail = res.statusText;
+      try {
+        const body = await res.json();
+        detail = body.detail || detail;
+      } catch (_) {
+        // ignore
+      }
+      throw new Error(detail);
+    }
+    return await res.json();
+  } catch (err) {
+    if (err.name === "TypeError" && (err.message.includes("fetch") || err.message.includes("Failed") || err.message.includes("NetworkError"))) {
+      throw new Error("Unable to connect to the backend server. Please ensure your FastAPI backend is running on http://127.0.0.1:8000.");
+    }
+    throw err;
+  }
+}
+
+export async function analyzeRepo(repoUrl) {
+  return safeFetch(`${API_BASE}/api/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ repo_url: repoUrl }),
+  });
+}
+
+export async function getStatus(sessionId) {
+  return safeFetch(`${API_BASE}/api/status/${sessionId}`);
+}
+
+export async function sendChat(sessionId, question) {
+  return safeFetch(`${API_BASE}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId, question }),
+  });
+}
+
+export async function getGraph(sessionId) {
+  return safeFetch(`${API_BASE}/api/graph/${sessionId}`);
+}
+
