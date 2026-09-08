@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "cd frontend && npm install && npm run build",
-    "start": "npx --yes serve frontend/dist -l $PORT"
+    "start": "npx --yes serve -s frontend/dist -l $PORT"
   },
   "dependencies": {
     "serve": "^14.2.3"
