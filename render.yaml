@@ -16,7 +16,7 @@ services:
       - key: CLONE_ROOT
         value: "/tmp/repo-chat-clones"
       - key: FRONTEND_ORIGIN
-        value: "https://repo-chat-frontend.onrender.com"
+        value: "https://repo-chat-jvny.onrender.com"
       - key: NVIDIA_API_KEY
         sync: false
       - key: NVIDIA_MODEL

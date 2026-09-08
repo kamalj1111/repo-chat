@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : "http://127.0.0.1:8000";
+const _isLocal = typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_BASE = import.meta.env.VITE_API_URL ||
+  (_isLocal ? 'http://127.0.0.1:8000' : 'https://repo-chat-backend.onrender.com');
 
 async function safeFetch(url, options) {
   try {
