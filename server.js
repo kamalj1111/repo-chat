@@ -1,28 +1,38 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const { execSync } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DIST = path.join(__dirname, 'frontend', 'dist');
 
-// Fail fast with a clear message if dist doesn't exist
+// Build the frontend if dist doesn't exist
 if (!fs.existsSync(DIST)) {
-  console.error(`ERROR: Build output not found at ${DIST}`);
-  console.error('Run "npm run build" first.');
+  console.log('[server] frontend/dist not found — building now...');
+  try {
+    execSync('npm install --prefix frontend', { stdio: 'inherit', cwd: __dirname });
+    execSync('npm run build --prefix frontend', { stdio: 'inherit', cwd: __dirname });
+    console.log('[server] Build complete.');
+  } catch (err) {
+    console.error('[server] Build failed:', err.message);
+    process.exit(1);
+  }
+}
+
+if (!fs.existsSync(path.join(DIST, 'index.html'))) {
+  console.error(`[server] ERROR: ${DIST}/index.html still missing after build. Exiting.`);
   process.exit(1);
 }
 
-console.log(`Serving files from: ${DIST}`);
+console.log(`[server] Serving from: ${DIST}`);
 
-// Serve static files from the built frontend
 app.use(express.static(DIST));
 
-// SPA fallback — all unknown routes serve index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(DIST, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Frontend server running on http://0.0.0.0:${PORT}`);
+  console.log(`[server] Running on http://0.0.0.0:${PORT}`);
 });
