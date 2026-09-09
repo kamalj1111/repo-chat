@@ -14,7 +14,11 @@ app = FastAPI(title="Repo Chat API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        FRONTEND_ORIGIN,           # set via FRONTEND_ORIGIN env var (production)
+        "http://localhost:5173",   # Vite dev server
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

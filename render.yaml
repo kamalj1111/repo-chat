@@ -40,8 +40,6 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      # Hardcoded backend URL - more reliable than fromService at build time
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: repo-chat-backend
-          property: url
+        value: "https://repo-chat-backend.onrender.com"
