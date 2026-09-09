@@ -52,8 +52,7 @@ def status(session_id: str):
     if job:
         return StatusResponse(session_id=session_id, **job)
 
-    # Not in memory (e.g. server restarted) - check whether it's already
-    # persisted and done.
+    # Not in memory — check if it's already persisted and done (e.g. server restarted).
     repo = db.get_repo(session_id)
     if repo:
         graph = repo["graph"]
@@ -64,7 +63,14 @@ def status(session_id: str):
             edge_count=len(graph.get("edges", [])),
         )
 
-    raise HTTPException(status_code=404, detail="Unknown session_id.")
+    # Job not in memory and not in DB yet — it may still be queued/running
+    # in a background task (especially right after /analyze on a cold start).
+    # Return "processing" so the frontend keeps polling instead of crashing.
+    return StatusResponse(
+        session_id=session_id,
+        status="processing",
+        message="Analysis in progress, please wait...",
+    )
 
 
 @app.post("/api/chat", response_model=ChatResponse)

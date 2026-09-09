@@ -44,9 +44,13 @@ export default function App() {
   }
 
   function startPolling(session_id) {
+    let errorCount = 0;
+    const MAX_ERRORS = 5; // tolerate up to 5 consecutive failures (cold starts, etc.)
+
     pollRef.current = setInterval(async () => {
       try {
         const s = await getStatus(session_id);
+        errorCount = 0; // reset on success
         setJobStatus(s.status);
         setJobMessage(s.message);
 
@@ -59,11 +63,17 @@ export default function App() {
           clearInterval(pollRef.current);
         }
       } catch (err) {
-        clearInterval(pollRef.current);
-        setJobStatus("error");
-        setJobMessage(err.message);
+        errorCount++;
+        if (errorCount >= MAX_ERRORS) {
+          clearInterval(pollRef.current);
+          setJobStatus("error");
+          setJobMessage(err.message);
+        } else {
+          // transient error — keep polling silently
+          setJobMessage(`Connecting to backend... (retry ${errorCount}/${MAX_ERRORS})`);
+        }
       }
-    }, 1500);
+    }, 2000);
   }
 
   useEffect(() => {
