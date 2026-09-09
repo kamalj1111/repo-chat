@@ -1,7 +1,10 @@
 const _isLocal = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const API_BASE = import.meta.env.VITE_API_URL ||
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '') ||
   (_isLocal ? 'http://127.0.0.1:8000' : 'https://repo-chat-backend.onrender.com');
+
+// Log the resolved API base so it's visible in browser devtools
+console.log('[api] API_BASE =', API_BASE);
 
 async function safeFetch(url, options) {
   try {
@@ -19,7 +22,7 @@ async function safeFetch(url, options) {
     return await res.json();
   } catch (err) {
     if (err.name === "TypeError" && (err.message.includes("fetch") || err.message.includes("Failed") || err.message.includes("NetworkError"))) {
-      throw new Error("Unable to connect to the backend server. Please check your backend connection or VITE_API_URL setting.");
+      throw new Error(`Unable to connect to backend at ${API_BASE}. Check that the backend service is running on Render.`);
     }
     throw err;
   }
